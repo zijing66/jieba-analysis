@@ -24,6 +24,7 @@ public class TFIDFAnalyzer {
     static HashMap<String, Double> idfMap;
     static HashSet<String> stopWordsSet;
     static double idfMedian;
+    private final String DEFAULT_CHARSET_NAME = "utf-8";
 
     /**
      * tfidf分析方法
@@ -98,7 +99,7 @@ public class TFIDFAnalyzer {
 
         // 计算double型的tf值
         for (String word : freqMap.keySet()) {
-            tfMap.put(word, freqMap.get(word) * 0.1 / wordSum);
+            tfMap.put(word, freqMap.get(word) * 1.0 / wordSum);
         }
 
         return tfMap;
@@ -114,7 +115,7 @@ public class TFIDFAnalyzer {
     private void loadStopWords(Set<String> set, InputStream in) {
         BufferedReader bufr;
         try {
-            bufr = new BufferedReader(new InputStreamReader(in));
+            bufr = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET_NAME));
             String line = null;
             while ((line = bufr.readLine()) != null) {
                 set.add(line.trim());
@@ -139,7 +140,7 @@ public class TFIDFAnalyzer {
     private void loadIDFMap(Map<String, Double> map, InputStream in) {
         BufferedReader bufr;
         try {
-            bufr = new BufferedReader(new InputStreamReader(in));
+            bufr = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET_NAME));
             String line = null;
             while ((line = bufr.readLine()) != null) {
                 String[] kv = line.trim().split(" ");

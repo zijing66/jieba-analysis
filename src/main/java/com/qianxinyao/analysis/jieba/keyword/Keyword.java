@@ -7,8 +7,8 @@ package com.qianxinyao.analysis.jieba.keyword;
  * @date Oct 20, 2018
  */
 public class Keyword implements Comparable<Keyword> {
-    private double tfidfvalue;
     private String name;
+    private double tfidfvalue;
 
     /**
      * @return the tfidfvalue
@@ -90,5 +90,9 @@ public class Keyword implements Comparable<Keyword> {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return String.format("(%s, %f)", name, tfidfvalue);
+    }
 }
 
