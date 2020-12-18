@@ -23,17 +23,40 @@ public class TFIDFAnalyzer {
 
     static HashMap<String, Double> idfMap;
     static HashSet<String> stopWordsSet;
-    static double idfMedian;
+    /*static double idfMedian;*/
     private final String DEFAULT_CHARSET_NAME = "utf-8";
 
     /**
      * tfidf分析方法
      *
      * @param content 需要分析的文本/文档内容
-     * @param topN    需要返回的tfidf值最高的N个关键词，若超过content本身含有的词语上限数目，则默认返回全部
+     * @param topFlag 是否最高排列
+     * @param n    需要返回的tfidf值最高的N个关键词，若超过content本身含有的词语上限数目，则默认返回全部
      * @return
      */
-    public List<Keyword> analyze(String content, int topN) {
+    public List<Keyword> analyze(String content, boolean topFlag, int n) {
+        List<Keyword> keywordList = analyze(content);
+        Collections.sort(keywordList);
+        if (!topFlag) {
+            Collections.reverse(keywordList);
+        }
+
+        if (keywordList.size() > n) {
+            int num = keywordList.size() - n;
+            for (int i = 0; i < num; i++) {
+                keywordList.remove(n);
+            }
+        }
+        return keywordList;
+    }
+
+    /**
+     * tfidf分析方法
+     *
+     * @param content 需要分析的文本/文档内容
+     * @return
+     */
+    public List<Keyword> analyze(String content) {
         List<Keyword> keywordList = new ArrayList<>();
 
         if (stopWordsSet == null) {
@@ -43,6 +66,7 @@ public class TFIDFAnalyzer {
         if (idfMap == null) {
             idfMap = new HashMap<>();
             loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_dict.txt"));
+            loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_user.txt"));
         }
 
         Map<String, Double> tfMap = getTF(content);
@@ -51,16 +75,9 @@ public class TFIDFAnalyzer {
             if (idfMap.containsKey(word)) {
                 keywordList.add(new Keyword(word, idfMap.get(word) * tfMap.get(word)));
             } else {
-                keywordList.add(new Keyword(word, idfMedian * tfMap.get(word)));
-            }
-        }
-
-        Collections.sort(keywordList);
-
-        if (keywordList.size() > topN) {
-            int num = keywordList.size() - topN;
-            for (int i = 0; i < num; i++) {
-                keywordList.remove(topN);
+                /*keywordList.add(new Keyword(word, idfMedian * tfMap.get(word)));*/
+                /*不在idf中，认为几乎为0*/
+                keywordList.add(new Keyword(word, 0.001d * tfMap.get(word)));
             }
         }
         return keywordList;
@@ -118,7 +135,8 @@ public class TFIDFAnalyzer {
             bufr = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET_NAME));
             String line = null;
             while ((line = bufr.readLine()) != null) {
-                set.add(line.trim());
+                /*set.add(line.trim());*/
+                set.add(line);
             }
             try {
                 bufr.close();
@@ -144,6 +162,9 @@ public class TFIDFAnalyzer {
             String line = null;
             while ((line = bufr.readLine()) != null) {
                 String[] kv = line.trim().split(" ");
+                if (kv.length != 2) {
+                    continue;
+                }
                 map.put(kv[0], Double.parseDouble(kv[1]));
             }
             try {
@@ -153,9 +174,9 @@ public class TFIDFAnalyzer {
             }
 
             // 计算idf值的中位数
-            List<Double> idfList = new ArrayList<>(map.values());
+            /*List<Double> idfList = new ArrayList<>(map.values());
             Collections.sort(idfList);
-            idfMedian = idfList.get(idfList.size() / 2);
+            idfMedian = idfList.get(idfList.size() / 2);*/
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,9 +184,9 @@ public class TFIDFAnalyzer {
 
     public static void main(String[] args) {
         String content = "孩子上了幼儿园 安全防拐教育要做好";
-        int topN = 5;
+        int n = 5;
         TFIDFAnalyzer tfidfAnalyzer = new TFIDFAnalyzer();
-        List<Keyword> list = tfidfAnalyzer.analyze(content, topN);
+        List<Keyword> list = tfidfAnalyzer.analyze(content, true, n);
         for (Keyword word : list) {
             System.out.print(word.getName() + ":" + word.getTfidfvalue() + ",");
         }
