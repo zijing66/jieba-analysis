@@ -21,17 +21,27 @@ import com.huaban.analysis.jieba.JiebaSegmenter;
  */
 public class TFIDFAnalyzer {
 
-    static HashMap<String, Double> idfMap;
-    static HashSet<String> stopWordsSet;
+    static HashSet<String> stopWordsSet = new HashSet<>();
+    static HashMap<String, Double> idfMap = new HashMap<>();
     /*static double idfMedian;*/
     private final String DEFAULT_CHARSET_NAME = "utf-8";
+
+    public TFIDFAnalyzer() {
+        synchronized (stopWordsSet) {
+            loadStopWords(stopWordsSet, this.getClass().getResourceAsStream("/stop_words.txt"));
+        }
+        synchronized (idfMap) {
+            loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_dict.txt"));
+            loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_user.txt"));
+        }
+    }
 
     /**
      * tfidf分析方法
      *
      * @param content 需要分析的文本/文档内容
      * @param topFlag 是否最高排列
-     * @param n    需要返回的tfidf值最高的N个关键词，若超过content本身含有的词语上限数目，则默认返回全部
+     * @param n       需要返回的tfidf值最高的N个关键词，若超过content本身含有的词语上限数目，则默认返回全部
      * @return
      */
     public List<Keyword> analyze(String content, boolean topFlag, int n) {
@@ -58,16 +68,6 @@ public class TFIDFAnalyzer {
      */
     public List<Keyword> analyze(String content) {
         List<Keyword> keywordList = new ArrayList<>();
-
-        if (stopWordsSet == null) {
-            stopWordsSet = new HashSet<>();
-            loadStopWords(stopWordsSet, this.getClass().getResourceAsStream("/stop_words.txt"));
-        }
-        if (idfMap == null) {
-            idfMap = new HashMap<>();
-            loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_dict.txt"));
-            loadIDFMap(idfMap, this.getClass().getResourceAsStream("/idf_user.txt"));
-        }
 
         Map<String, Double> tfMap = getTF(content);
         for (String word : tfMap.keySet()) {
