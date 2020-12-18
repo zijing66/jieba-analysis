@@ -17,21 +17,18 @@ import com.huaban.analysis.jieba.CharacterUtil;
 import com.huaban.analysis.jieba.Pair;
 import com.huaban.analysis.jieba.Node;
 
-
 public class FinalSeg {
     private static FinalSeg singleInstance;
     private static final String PROB_EMIT = "/prob_emit.txt";
-    private static char[] states = new char[] { 'B', 'M', 'E', 'S' };
+    private static char[] states = new char[] {'B', 'M', 'E', 'S'};
     private static Map<Character, Map<Character, Double>> emit;
     private static Map<Character, Double> start;
     private static Map<Character, Map<Character, Double>> trans;
     private static Map<Character, char[]> prevStatus;
-    private static Double MIN_FLOAT = -3.14e100;;
-
+    private static Double MIN_FLOAT = -3.14e100;
 
     private FinalSeg() {
     }
-
 
     public synchronized static FinalSeg getInstance() {
         if (null == singleInstance) {
@@ -41,14 +38,13 @@ public class FinalSeg {
         return singleInstance;
     }
 
-
     private void loadModel() {
         long s = System.currentTimeMillis();
         prevStatus = new HashMap<Character, char[]>();
-        prevStatus.put('B', new char[] { 'E', 'S' });
-        prevStatus.put('M', new char[] { 'M', 'B' });
-        prevStatus.put('S', new char[] { 'S', 'E' });
-        prevStatus.put('E', new char[] { 'B', 'M' });
+        prevStatus.put('B', new char[] {'E', 'S'});
+        prevStatus.put('M', new char[] {'M', 'B'});
+        prevStatus.put('S', new char[] {'S', 'E'});
+        prevStatus.put('E', new char[] {'B', 'M'});
 
         start = new HashMap<Character, Double>();
         start.put('B', -0.26268660809250016);
@@ -85,28 +81,24 @@ public class FinalSeg {
                 if (tokens.length == 1) {
                     values = new HashMap<Character, Double>();
                     emit.put(tokens[0].charAt(0), values);
-                }
-                else {
+                } else {
                     values.put(tokens[0].charAt(0), Double.valueOf(tokens[1]));
                 }
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.err.println(String.format(Locale.getDefault(), "%s: load model failure!", PROB_EMIT));
-        }
-        finally {
+        } finally {
             try {
-                if (null != is)
+                if (null != is) {
                     is.close();
-            }
-            catch (IOException e) {
+                }
+            } catch (IOException e) {
                 System.err.println(String.format(Locale.getDefault(), "%s: close failure!", PROB_EMIT));
             }
         }
-        System.out.println(String.format(Locale.getDefault(), "model load finished, time elapsed %d ms.",
-            System.currentTimeMillis() - s));
+        System.out.println(String
+            .format(Locale.getDefault(), "model load finished, time elapsed %d ms.", System.currentTimeMillis() - s));
     }
-
 
     public void cut(String sentence, List<String> tokens) {
         StringBuilder chinese = new StringBuilder();
@@ -119,8 +111,7 @@ public class FinalSeg {
                     other = new StringBuilder();
                 }
                 chinese.append(ch);
-            }
-            else {
+            } else {
                 if (chinese.length() > 0) {
                     viterbi(chinese.toString(), tokens);
                     chinese = new StringBuilder();
@@ -129,13 +120,12 @@ public class FinalSeg {
             }
 
         }
-        if (chinese.length() > 0)
+        if (chinese.length() > 0) {
             viterbi(chinese.toString(), tokens);
-        else {
+        } else {
             processOtherUnknownWords(other.toString(), tokens);
         }
     }
-
 
     public void viterbi(String sentence, List<String> tokens) {
         Vector<Map<Character, Double>> v = new Vector<Map<Character, Double>>();
@@ -144,8 +134,9 @@ public class FinalSeg {
         v.add(new HashMap<Character, Double>());
         for (char state : states) {
             Double emP = emit.get(state).get(sentence.charAt(0));
-            if (null == emP)
+            if (null == emP) {
                 emP = MIN_FLOAT;
+            }
             v.get(0).put(state, start.get(state) + emP);
             path.put(state, new Node(state, null));
         }
@@ -156,17 +147,19 @@ public class FinalSeg {
             Map<Character, Node> newPath = new HashMap<Character, Node>();
             for (char y : states) {
                 Double emp = emit.get(y).get(sentence.charAt(i));
-                if (emp == null)
+                if (emp == null) {
                     emp = MIN_FLOAT;
+                }
                 Pair<Character> candidate = null;
                 for (char y0 : prevStatus.get(y)) {
                     Double tranp = trans.get(y0).get(y);
-                    if (null == tranp)
+                    if (null == tranp) {
                         tranp = MIN_FLOAT;
+                    }
                     tranp += (emp + v.get(i - 1).get(y0));
-                    if (null == candidate)
+                    if (null == candidate) {
                         candidate = new Pair<Character>(y0, tranp);
-                    else if (candidate.freq <= tranp) {
+                    } else if (candidate.freq <= tranp) {
                         candidate.freq = tranp;
                         candidate.key = y0;
                     }
@@ -180,10 +173,11 @@ public class FinalSeg {
         double probS = v.get(sentence.length() - 1).get('S');
         Vector<Character> posList = new Vector<Character>(sentence.length());
         Node win;
-        if (probE < probS)
+        if (probE < probS) {
             win = path.get('S');
-        else
+        } else {
             win = path.get('E');
+        }
 
         while (win != null) {
             posList.add(win.value);
@@ -194,21 +188,20 @@ public class FinalSeg {
         int begin = 0, next = 0;
         for (int i = 0; i < sentence.length(); ++i) {
             char pos = posList.get(i);
-            if (pos == 'B')
+            if (pos == 'B') {
                 begin = i;
-            else if (pos == 'E') {
+            } else if (pos == 'E') {
                 tokens.add(sentence.substring(begin, i + 1));
                 next = i + 1;
-            }
-            else if (pos == 'S') {
+            } else if (pos == 'S') {
                 tokens.add(sentence.substring(i, i + 1));
                 next = i + 1;
             }
         }
-        if (next < sentence.length())
+        if (next < sentence.length()) {
             tokens.add(sentence.substring(next));
+        }
     }
-
 
     private void processOtherUnknownWords(String other, List<String> tokens) {
         Matcher mat = CharacterUtil.reSkip.matcher(other);
@@ -220,7 +213,8 @@ public class FinalSeg {
             tokens.add(mat.group());
             offset = mat.end();
         }
-        if (offset < other.length())
+        if (offset < other.length()) {
             tokens.add(other.substring(offset));
+        }
     }
 }

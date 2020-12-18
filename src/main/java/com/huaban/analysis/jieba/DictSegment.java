@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * 词典树分段，表示词典树的一个分枝
  */
@@ -29,7 +28,6 @@ class DictSegment implements Comparable<DictSegment> {
     // 当前DictSegment状态 ,默认 0 , 1表示从根节点到当前节点的路径表示一个词
     private int nodeState = 0;
 
-
     DictSegment(Character nodeChar) {
         if (nodeChar == null) {
             throw new IllegalArgumentException("参数为空异常，字符不能为空");
@@ -37,11 +35,9 @@ class DictSegment implements Comparable<DictSegment> {
         this.nodeChar = nodeChar;
     }
 
-
     Character getNodeChar() {
         return nodeChar;
     }
-
 
     /*
      * 判断是否有下一个节点
@@ -50,10 +46,9 @@ class DictSegment implements Comparable<DictSegment> {
         return this.storeSize > 0;
     }
 
-
     /**
      * 匹配词段
-     * 
+     *
      * @param charArray
      * @return Hit
      */
@@ -61,10 +56,9 @@ class DictSegment implements Comparable<DictSegment> {
         return this.match(charArray, 0, charArray.length, null);
     }
 
-
     /**
      * 匹配词段
-     * 
+     *
      * @param charArray
      * @param begin
      * @param length
@@ -74,10 +68,9 @@ class DictSegment implements Comparable<DictSegment> {
         return this.match(charArray, begin, length, null);
     }
 
-
     /**
      * 匹配词段
-     * 
+     *
      * @param charArray
      * @param begin
      * @param length
@@ -91,8 +84,7 @@ class DictSegment implements Comparable<DictSegment> {
             searchHit = new Hit();
             // 设置hit的其实文本位置
             searchHit.setBegin(begin);
-        }
-        else {
+        } else {
             // 否则要将HIT状态重置
             searchHit.setUnmatch();
         }
@@ -115,10 +107,9 @@ class DictSegment implements Comparable<DictSegment> {
                 ds = segmentArray[position];
             }
 
-        }
-        else if (segmentMap != null) {
+        } else if (segmentMap != null) {
             // 在map中查找
-            ds = (DictSegment) segmentMap.get(keyChar);
+            ds = (DictSegment)segmentMap.get(keyChar);
         }
 
         // STEP2 找到DictSegment，判断词的匹配状态，是否继续递归，还是返回结果
@@ -126,8 +117,7 @@ class DictSegment implements Comparable<DictSegment> {
             if (length > 1) {
                 // 词未匹配完，继续往下搜索
                 return ds.match(charArray, begin + 1, length - 1, searchHit);
-            }
-            else if (length == 1) {
+            } else if (length == 1) {
 
                 // 搜索最后一个char
                 if (ds.nodeState == 1) {
@@ -148,30 +138,27 @@ class DictSegment implements Comparable<DictSegment> {
         return searchHit;
     }
 
-
     /**
      * 加载填充词典片段
-     * 
+     *
      * @param charArray
      */
     void fillSegment(char[] charArray) {
         this.fillSegment(charArray, 0, charArray.length, 1);
     }
 
-
     /**
      * 屏蔽词典中的一个词
-     * 
+     *
      * @param charArray
      */
     void disableSegment(char[] charArray) {
         this.fillSegment(charArray, 0, charArray.length, 0);
     }
 
-
     /**
      * 加载填充词典片段
-     * 
+     *
      * @param charArray
      * @param begin
      * @param length
@@ -194,8 +181,7 @@ class DictSegment implements Comparable<DictSegment> {
             if (length > 1) {
                 // 词元还没有完全加入词典树
                 ds.fillSegment(charArray, begin + 1, length - 1, enabled);
-            }
-            else if (length == 1) {
+            } else if (length == 1) {
                 // 已经是词元的最后一个char,设置当前节点状态为enabled，
                 // enabled=1表明一个完整的词，enabled=0表示从词典中屏蔽当前词
                 ds.nodeState = enabled;
@@ -204,13 +190,11 @@ class DictSegment implements Comparable<DictSegment> {
 
     }
 
-
     /**
      * 查找本节点下对应的keyChar的segment *
-     * 
+     *
      * @param keyChar
-     * @param create
-     *            =1如果没有找到，则创建新的segment ; =0如果没有找到，不创建，返回null
+     * @param create  =1如果没有找到，则创建新的segment ; =0如果没有找到，不创建，返回null
      * @return
      */
     private DictSegment lookforSegment(Character keyChar, int create) {
@@ -237,8 +221,7 @@ class DictSegment implements Comparable<DictSegment> {
                     this.storeSize++;
                     Arrays.sort(segmentArray, 0, this.storeSize);
 
-                }
-                else {
+                } else {
                     // 数组容量已满，切换Map存储
                     // 获取Map容器，如果Map未创建,则创建Map
                     Map<Character, DictSegment> segmentMap = getChildrenMap();
@@ -254,12 +237,11 @@ class DictSegment implements Comparable<DictSegment> {
 
             }
 
-        }
-        else {
+        } else {
             // 获取Map容器，如果Map未创建,则创建Map
             Map<Character, DictSegment> segmentMap = getChildrenMap();
             // 搜索Map
-            ds = (DictSegment) segmentMap.get(keyChar);
+            ds = (DictSegment)segmentMap.get(keyChar);
             if (ds == null && create == 1) {
                 // 构造新的segment
                 ds = new DictSegment(keyChar);
@@ -271,7 +253,6 @@ class DictSegment implements Comparable<DictSegment> {
 
         return ds;
     }
-
 
     /**
      * 获取数组容器 线程同步方法
@@ -287,7 +268,6 @@ class DictSegment implements Comparable<DictSegment> {
         return this.childrenArray;
     }
 
-
     /**
      * 获取Map容器 线程同步方法
      */
@@ -302,10 +282,9 @@ class DictSegment implements Comparable<DictSegment> {
         return this.childrenMap;
     }
 
-
     /**
      * 将数组中的segment迁移到Map中
-     * 
+     *
      * @param segmentArray
      */
     private void migrate(DictSegment[] segmentArray, Map<Character, DictSegment> segmentMap) {
@@ -316,10 +295,9 @@ class DictSegment implements Comparable<DictSegment> {
         }
     }
 
-
     /**
      * 实现Comparable接口
-     * 
+     *
      * @param o
      * @return int
      */

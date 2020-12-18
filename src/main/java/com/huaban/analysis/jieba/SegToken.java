@@ -7,13 +7,11 @@ public class SegToken {
 
     public int endOffset;
 
-
     public SegToken(String word, int startOffset, int endOffset) {
         this.word = word;
         this.startOffset = startOffset;
         this.endOffset = endOffset;
     }
-
 
     @Override
     public String toString() {
