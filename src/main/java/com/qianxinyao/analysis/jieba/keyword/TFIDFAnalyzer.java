@@ -1,6 +1,12 @@
 package com.qianxinyao.analysis.jieba.keyword;
 
-import java.io.*;
+import com.huaban.analysis.jieba.JiebaSegmenter;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,8 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.huaban.analysis.jieba.JiebaSegmenter;
 
 /**
  * @author Tom Qian
@@ -23,10 +27,11 @@ public class TFIDFAnalyzer {
 
     static HashSet<String> stopWordsSet = new HashSet<>();
     static HashMap<String, Double> idfMap = new HashMap<>();
-    /*static double idfMedian;*/
-    private final String DEFAULT_CHARSET_NAME = "utf-8";
+    /**static double idfMedian;*/
+    private String DEFAULT_CHARSET_NAME = "utf-8";
 
     public TFIDFAnalyzer() {
+        DEFAULT_CHARSET_NAME = Charset.defaultCharset().toString();
         synchronized (stopWordsSet) {
             loadStopWords(stopWordsSet, this.getClass().getResourceAsStream("/stop_words.txt"));
         }
@@ -104,7 +109,7 @@ public class TFIDFAnalyzer {
         int wordSum = 0;
         for (String segment : segments) {
             //停用词不予考虑，单字词不予考虑
-            if (!stopWordsSet.contains(segment) && segment.length() > 1) {
+            if (!stopWordsJudge(segment)) {
                 wordSum++;
                 if (freqMap.containsKey(segment)) {
                     freqMap.put(segment, freqMap.get(segment) + 1);
@@ -120,6 +125,21 @@ public class TFIDFAnalyzer {
         }
 
         return tfMap;
+    }
+    
+    private boolean stopWordsJudge(String findStr) {
+        if (findStr.length() > 1) {
+            if (stopWordsSet.contains(findStr)) {
+                return true;
+            }
+            for (char c : findStr.toCharArray()) {
+                if (!stopWordsSet.contains(String.valueOf(c))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return true;
     }
 
     /**
