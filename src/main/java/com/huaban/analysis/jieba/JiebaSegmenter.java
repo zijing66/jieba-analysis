@@ -94,7 +94,8 @@ public class JiebaSegmenter {
         StringBuilder sb = new StringBuilder();
         int offset = 0;
         for (int i = 0; i < paragraph.length(); ++i) {
-            char ch = CharacterUtil.regularize(paragraph.charAt(i));
+            /*char ch = CharacterUtil.regularize(paragraph.charAt(i));*/
+            char ch = paragraph.charAt(i);
             if (CharacterUtil.ccFind(ch)) {
                 sb.append(ch);
             } else {

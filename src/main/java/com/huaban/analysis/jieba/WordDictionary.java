@@ -1,6 +1,8 @@
 package com.huaban.analysis.jieba;
 
 import java.io.BufferedReader;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -19,15 +22,25 @@ import java.util.Set;
 public class WordDictionary {
     private static WordDictionary singleton;
     private static final String MAIN_DICT = "/dict.txt";
+    private static final String EXTEND_DICT = "/extend_user_dict.txt";
     private static String USER_DICT_SUFFIX = ".dict";
 
     public final Map<String, Double> freqs = new HashMap<String, Double>();
     public final Set<String> loadedPath = new HashSet<String>();
     private Double minFreq = Double.MAX_VALUE;
     private Double total = 0.0;
-    private DictSegment _dict;
+    private DictSegment _dict = new DictSegment((char)0);
 
     private WordDictionary() {
+        try {
+            // 优先加载用户缓存
+            URL extentDictUrl = this.getClass().getResource(EXTEND_DICT);
+            if (null != extentDictUrl && Files.exists(Paths.get(extentDictUrl.toURI()))) {
+                this.loadUserDict(EXTEND_DICT);
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         this.loadDict();
     }
 
@@ -101,7 +114,6 @@ public class WordDictionary {
     }
 
     public void loadDict() {
-        _dict = new DictSegment((char)0);
         InputStream is = this.getClass().getResourceAsStream(MAIN_DICT);
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -143,7 +155,8 @@ public class WordDictionary {
 
     private String addWord(String word) {
         if (null != word && !"".equals(word.trim())) {
-            String key = word.trim().toLowerCase(Locale.getDefault());
+            /*String key = word.trim().toLowerCase(Locale.getDefault());*/
+            String key = word.trim();
             _dict.fillSegment(key.toCharArray());
             return key;
         } else {
@@ -166,7 +179,7 @@ public class WordDictionary {
             int count = 0;
             while (br.ready()) {
                 String line = br.readLine();
-                String[] tokens = line.split("[\t ]+");
+                String[] tokens = line.split("[\t]+");
 
                 if (tokens.length < 1) {
                     // Ignore empty line
@@ -201,7 +214,7 @@ public class WordDictionary {
             int count = 0;
             while (br.ready()) {
                 String line = br.readLine();
-                String[] tokens = line.split("[\t ]+");
+                String[] tokens = line.split("[\t]+");
 
                 if (tokens.length < 1) {
                     // Ignore empty line

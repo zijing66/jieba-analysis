@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Tom Qian
@@ -25,6 +26,7 @@ import java.util.Set;
  */
 public class TFIDFAnalyzer {
 
+    private final JiebaSegmenter segmenter = new JiebaSegmenter();
     static HashSet<String> stopWordsSet = new HashSet<>();
     static HashMap<String, Double> idfMap = new HashMap<>();
     /**static double idfMedian;*/
@@ -101,9 +103,8 @@ public class TFIDFAnalyzer {
         if (content == null || content.equals("")) {
             return tfMap;
         }
-
-        JiebaSegmenter segmenter = new JiebaSegmenter();
-        List<String> segments = segmenter.sentenceProcess(content);
+        List<String> segments = segmenter.process(content, JiebaSegmenter.SegMode.SEARCH)
+            .parallelStream().map(m -> m.word).collect(Collectors.toList());
         Map<String, Integer> freqMap = new HashMap<>();
 
         int wordSum = 0;

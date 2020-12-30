@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 public class CharacterUtil {
     public static Pattern reSkip = Pattern.compile("(\\d+\\.\\d+|[a-zA-Z0-9]+)");
-    private static final char[] connectors = new char[] {'+', '#', '&', '.', '_', '-'};
+    private static final char[] connectors = new char[] {'+', '#', '&', '.', '_', '-', '(', ')', '（', '）'};
 
     public static boolean isChineseLetter(char ch) {
         if (ch >= 0x4E00 && ch <= 0x9FA5) {
