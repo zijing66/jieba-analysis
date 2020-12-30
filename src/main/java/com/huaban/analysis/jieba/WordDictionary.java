@@ -1,17 +1,14 @@
 package com.huaban.analysis.jieba;
 
 import java.io.BufferedReader;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -22,7 +19,6 @@ import java.util.Set;
 public class WordDictionary {
     private static WordDictionary singleton;
     private static final String MAIN_DICT = "/dict.txt";
-    private static final String EXTEND_DICT = "/extend_user_dict.txt";
     private static String USER_DICT_SUFFIX = ".dict";
 
     public final Map<String, Double> freqs = new HashMap<String, Double>();
@@ -32,15 +28,6 @@ public class WordDictionary {
     private DictSegment _dict = new DictSegment((char)0);
 
     private WordDictionary() {
-        try {
-            // 优先加载用户缓存
-            URL extentDictUrl = this.getClass().getResource(EXTEND_DICT);
-            if (null != extentDictUrl && Files.exists(Paths.get(extentDictUrl.toURI()))) {
-                this.loadUserDict(EXTEND_DICT);
-            }
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
         this.loadDict();
     }
 
@@ -237,6 +224,40 @@ public class WordDictionary {
             br.close();
         } catch (IOException e) {
             System.err.println(String.format(Locale.getDefault(), "%s: load user dict failure!", userDictPath));
+        }
+    }
+
+    public void loadUserDict(String filePath, InputStream inputStream, Charset charset) {
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, charset));
+
+            long s = System.currentTimeMillis();
+            int count = 0;
+            while (br.ready()) {
+                String line = br.readLine();
+                String[] tokens = line.split("[\t]+");
+
+                if (tokens.length < 1) {
+                    // Ignore empty line
+                    continue;
+                }
+
+                String word = tokens[0];
+
+                double freq = 3.0d;
+                if (tokens.length == 2) {
+                    freq = Double.valueOf(tokens[1]);
+                }
+                word = addWord(word);
+                freqs.put(word, Math.log(freq / total));
+                count++;
+            }
+            System.out.println(String
+                .format(Locale.getDefault(), "user dict %s load finished, tot words:%d, time elapsed:%dms",
+                    filePath, count, System.currentTimeMillis() - s));
+            br.close();
+        } catch (IOException e) {
+            System.err.println(String.format(Locale.getDefault(), "%s: load user dict failure!", filePath));
         }
     }
 
