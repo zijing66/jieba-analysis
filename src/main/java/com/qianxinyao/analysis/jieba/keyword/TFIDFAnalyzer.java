@@ -74,18 +74,14 @@ public class TFIDFAnalyzer {
      * @return
      */
     public List<Keyword> analyze(String content) {
-        List<Keyword> keywordList = new ArrayList<>();
+        List<Keyword> keywordList = new ArrayList<>(16);
 
         Map<String, Double> tfMap = getTF(content);
         for (String word : tfMap.keySet()) {
             // 若该词不在idf文档中，则使用平均的idf值(可能定期需要对新出现的网络词语进行纳入)
-            if (idfMap.containsKey(word)) {
-                keywordList.add(new Keyword(word, idfMap.get(word) * tfMap.get(word)));
-            } else {
-                /*keywordList.add(new Keyword(word, idfMedian * tfMap.get(word)));*/
-                /*不在idf中，认为几乎为0*/
-                keywordList.add(new Keyword(word, 0.001d * tfMap.get(word)));
-            }
+            /*keywordList.add(new Keyword(word, idfMedian * tfMap.get(word)));*/
+            /*不在idf中，认为几乎为0*/
+            keywordList.add(new Keyword(word, idfMap.getOrDefault(word, 0.001d) * tfMap.get(word)));
         }
         return keywordList;
     }
@@ -99,13 +95,13 @@ public class TFIDFAnalyzer {
      * @return
      */
     private Map<String, Double> getTF(String content) {
-        Map<String, Double> tfMap = new HashMap<>();
-        if (content == null || content.equals("")) {
+        Map<String, Double> tfMap = new HashMap<>(16);
+        if (content == null || "".equals(content)) {
             return tfMap;
         }
         List<String> segments = segmenter.process(content, JiebaSegmenter.SegMode.SEARCH)
             .parallelStream().map(m -> m.word).collect(Collectors.toList());
-        Map<String, Integer> freqMap = new HashMap<>();
+        Map<String, Integer> freqMap = new HashMap<>(16);
 
         int wordSum = 0;
         for (String segment : segments) {
