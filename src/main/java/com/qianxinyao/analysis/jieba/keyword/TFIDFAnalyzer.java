@@ -61,7 +61,7 @@ public class TFIDFAnalyzer {
         if (keywordList.size() > n) {
             int num = keywordList.size() - n;
             for (int i = 0; i < num; i++) {
-                keywordList.remove(n);
+                keywordList.remove(keywordList.size() - 1);
             }
         }
         return keywordList;
